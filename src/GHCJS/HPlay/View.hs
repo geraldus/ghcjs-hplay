@@ -84,6 +84,7 @@ import Prelude hiding(id,span)
 import Data.Dynamic
 
 import Control.Concurrent
+import Debug.Trace (trace)
 
 #ifdef ghcjs_HOST_OS
 import Transient.Move hiding (pack)
@@ -561,11 +562,11 @@ getSelect :: (Typeable a, Read a,Show a) =>
 getSelect opts = res where
   res= Transient $ do
     tolook <- genNewId
-    st <- get
+    st <- get !!> "SELECT GET"
 --    setData HasElems
-    r <- getParam1 tolook `asTypeOf` typef res
+    r <- getParam1 tolook `asTypeOf` typef res !!> "SELECT GETPARAM1"
 --    setData $ fmap MFOption $ valToMaybe r
-    runView $ fselect tolook <<< opts
+    runView $ fselect tolook <<< opts !!> "SELECT RUNVIEW"
 --
     return $ valToMaybe r
 
@@ -1371,3 +1372,8 @@ firstChild= undefined
 addChildBefore :: Elem -> Elem -> Elem -> IO()
 addChildBefore= undefined
 #endif
+
+{-# INLINE (!!>) #-}
+(!!>) :: Show a => b -> a -> b
+(!!>) x y=   trace (show y) x
+infixr 0 !!>
